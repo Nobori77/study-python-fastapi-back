@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from app.services.member_service import get_member_service, MemberService
 from redis.asyncio import Redis
-from app.services.redis_service import get_redis_service, RedisServcie
+from app.services.redis_service import get_redis_service, RedisService
 from app.utils.security_util import verify_password
 from app.utils.jwt_token_util import (
     parse_token, reissue_access_token, generate_access_token, generate_refresh_token
@@ -47,14 +47,11 @@ class AuthService:
         await self.redis_service.save_refresh_token(member_in_db.id, refresh_token)
         return tokens
 
-    # 소셜 로그인
-    async def social_login(self, login_request_dto: LoginRequestDTO):
+    # 소셜 로그인 
+    async def social_login(self, social_member: SocialLoginRequestDTO):
 
-        # 1) 회원 조회
-        member_in_db = await self.member_service.get_member_for_login(
-            login_request_dto.member_email,
-            login_request_dto.member_provider
-        )
+        # 1) 회원 조회 및 회원 가입
+        member_in_db = await self.member_service.social_login_or_create(social_member)
         
         # 2) payload 제작
         claims = MemberClaimsDTO(
@@ -74,35 +71,34 @@ class AuthService:
 
         # 4) redis refresh 등록
         await self.redis_service.save_refresh_token(member_in_db.id, refresh_token)
-        return tokens 
-    
+        return tokens
+
+
     # 로그아웃
-    async def logout(self, access_token: str):
-
-        # 1. access token 파싱
-        claims = parse_token(access_token)
-
-        member_id = claims.get("id")
-
-        if member_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="유효하지 않은 토큰입니다."
-            )
-
-        # 2. access token 블랙리스트 등록
-        await self.redis_service.save_blacklisted_token(access_token)
-
-        # 3. refresh token 삭제
+    # refresh token -> access token 재발급
+    async def logout(self, member_id: int, jwt_token_dto: JwtTokenDTO) -> None: 
+        # refresh token 삭제
+        access_token = jwt_token_dto.access_token
         await self.redis_service.delete_refresh_token(member_id)
 
-        return True
+        # access token 블랙리스트에 추가
+        await self.redis_service.save_blacklisted_token(access_token)
 
-    # refresh token -> access token 재발급
+
+
+
+
+
+
+
+
+
+
+
 
 
 def get_auth_service(
         member_service: MemberService = Depends(get_member_service),
-        redis_service: RedisServcie = Depends(get_redis_service)
+        redis_service: RedisService = Depends(get_redis_service)
 ):
     return AuthService(member_service, redis_service)

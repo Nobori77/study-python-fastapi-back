@@ -102,7 +102,8 @@ class MemberRepository:
             "member_name": member.member_name,
             "member_age": member.member_age,
             "member_picture": member.member_picture,
-            "member_provider": member.member_provider
+            "member_provider": member.member_provider,
+            "member_provider_id": member.member_provider_id
         }
 
         query = (
@@ -195,7 +196,7 @@ class MemberRepository:
         # })
 
         # await self.db.commit()
-        # return result.rowcount() > 0
+        # return result.rowcount > 0
 
         # 2) Core
         new_date = {
@@ -241,7 +242,7 @@ class MemberRepository:
         #     "id": id
         # })
         # await self.db.commit()
-        # return result.rowcount() > 0
+        # return result.rowcount > 0
     
         # 2) Core 방법
         query = (

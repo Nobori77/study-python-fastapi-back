@@ -1,10 +1,15 @@
 from pydantic import BaseModel
 from app.enums.member_enum import MemberProvider
+from app.schemas.member_schema import MemberClaimsDTO
 
 # DTO
 class JwtTokenDTO(BaseModel):
     access_token: str | None = None
     refresh_token: str | None = None
+
+class AuthContextDTO(BaseModel):
+    tokens: JwtTokenDTO
+    member_claims: MemberClaimsDTO
 
 class LoginRequestDTO(BaseModel):
     member_email: str
@@ -12,6 +17,7 @@ class LoginRequestDTO(BaseModel):
     member_provider: MemberProvider | None = None
 
 class SocialLoginRequestDTO(BaseModel):
+    member_name: str
     member_email: str
     member_password: str | None = None
     member_age: str | None = None
