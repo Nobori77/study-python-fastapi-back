@@ -130,6 +130,8 @@ class MemberService:
             )
 
     # 회원 이미지 수정S3
+    
+
     # 회원 탈퇴
     async def withdraw(self, id: int):
         is_deleted = await self.repo.delete_member(id)

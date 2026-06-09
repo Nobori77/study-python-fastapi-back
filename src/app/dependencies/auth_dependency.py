@@ -1,10 +1,14 @@
-from fastapi import Request, HTTPException, status
+from fastapi import Request, HTTPException, status, Depends
 from app.schemas.member_schema import MemberClaimsDTO
 from app.schemas.auth_schema import JwtTokenDTO, AuthContextDTO
 from app.utils.jwt_token_util import parse_token
+from app.services.redis_service import RedisService, get_redis_service
 from jose import JWTError
 
-def get_tokens(request: Request) -> JwtTokenDTO:
+def get_auth_context(
+        request: Request,
+        redis_service: RedisService = Depends(get_redis_service)
+        ) -> JwtTokenDTO:
     access_token = request.cookies.get("access_token")
     refresh_token = request.cookies.get("refresh_token")
 
@@ -12,6 +16,12 @@ def get_tokens(request: Request) -> JwtTokenDTO:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="접근 권한 없음(access token)"
+        )
+    
+    if not redis_service.is_blacklisted_token(access_token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="만료된 토큰 입니다."
         )
     
     try:
@@ -34,7 +44,6 @@ def get_tokens(request: Request) -> JwtTokenDTO:
             detail="유효하지 않은 토큰"
         )
     
-    return 
 
 
     
