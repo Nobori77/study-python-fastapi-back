@@ -5,10 +5,14 @@ from app.utils.jwt_token_util import parse_token
 from app.services.redis_service import RedisService, get_redis_service
 from jose import JWTError
 
+<<<<<<< HEAD
 def get_auth_context(
         request: Request,
         redis_service: RedisService = Depends(get_redis_service)
         ) -> JwtTokenDTO:
+=======
+def get_auth_context(request: Request) -> JwtTokenDTO:
+>>>>>>> cd449f19a4adfe998f21c733d1b95bc2ae7e2bfe
     access_token = request.cookies.get("access_token")
     refresh_token = request.cookies.get("refresh_token")
 
